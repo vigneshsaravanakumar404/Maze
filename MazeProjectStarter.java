@@ -296,32 +296,83 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 	public void drawMaze3D(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
-		String text = "\n\nExplore The Maze";
 		g2.setColor(Color.BLACK);
 		g2.fillRect(0, 0, frame.getWidth(), frame.getHeight());
+
+		// Find the number of grid spaces from exlorer to wall in front of the explorer
+		int x = explorer.getLoc().getX();
+		int y = explorer.getLoc().getY();
+		int count = 0;
+		while (maze[x][y] != '#') {
+			count++;
+			switch (explorer.getOrientation()) {
+				case 'N':
+					x--;
+					break;
+				case 'S':
+					x++;
+					break;
+				case 'E':
+					y++;
+					break;
+				case 'W':
+					y--;
+					break;
+			}
+		}
+		if (count > 5) {
+			count = 5;
+		}
 
 		if (true) {
 			int size3D = 600, backWall = 350;
 			int ULC = 100, LRC = ULC + size3D;
 			int shrink = (size3D - backWall) / 5;
 
+			// Back wall
+			g2.setColor(Color.GRAY);
+			g2.fillRect(ULC, ULC, size3D, size3D);
+
 			// left wall
-			for (int n = 0; n < 5; n++) {
-				int[] xLocs = { ULC + shrink * n, ULC + shrink * (n + 1), ULC + shrink * (n + 1), ULC + shrink * n };
-				int[] yLocs = { ULC + shrink * n, ULC + shrink * (n + 1), LRC - shrink * (n + 1), LRC - shrink * n };
+			for (int n = 0; n < count; n++) {
+				// Find the x, y coordinates of the cell that the explorer would see to his left
+				// as he looks forward 'n' steps. The actual logic might vary based on how your
+				// coordinates are set up.
+				int checkX = explorer.getLoc().getX();
+				int checkY = explorer.getLoc().getY() - n;
 
-				Polygon leftWall = new Polygon(xLocs, yLocs, xLocs.length);
-				g2.setColor(Color.WHITE);
-				g2.fill(leftWall);
-				g2.setColor(Color.BLACK);
-				g2.draw(leftWall);
+				// Check if this cell is an open space
+				if (!isOpenSpace(checkX, checkY)) {
+					// Logic to draw the wall segment here
+					int[] xLocs = { ULC + shrink * n, ULC + shrink * (n + 1), ULC + shrink * (n + 1),
+							ULC + shrink * n };
+					int[] yLocs = { ULC + shrink * n, ULC + shrink * (n + 1), LRC - shrink * (n + 1),
+							LRC - shrink * n };
+					int grayValue = 200 - n * 8; // Change intensity based on n
 
-				g2.setColor(Color.BLACK);
+					Polygon leftWall = new Polygon(xLocs, yLocs, xLocs.length);
+					g2.setColor(new Color(grayValue, grayValue, grayValue));
+					g2.fill(leftWall);
+					g2.setColor(Color.BLACK);
+					g2.draw(leftWall);
+				} else {
 
+					// Draw a black wall segment
+					int[] xLocs = { ULC + shrink * n, ULC + shrink * (n + 1), ULC + shrink * (n + 1),
+							ULC + shrink * n };
+					int[] yLocs = { ULC + shrink * n, ULC + shrink * (n + 1), LRC - shrink * (n + 1),
+							LRC - shrink * n };
+					Polygon leftWall = new Polygon(xLocs, yLocs, xLocs.length);
+					g2.setColor(Color.BLACK);
+					g2.fill(leftWall);
+					g2.setColor(Color.BLACK);
+					g2.draw(leftWall);
+
+				}
 			}
 
 			// rightWall
-			for (int n = 0; n < 5; n++) {
+			for (int n = 0; n < count; n++) {
 				int[] xLocs = { LRC - shrink * n, LRC - shrink * (n + 1), LRC - shrink * (n + 1), LRC - shrink * n };
 				int[] yLocs = { LRC - shrink * n, LRC - shrink * (n + 1), ULC + shrink * (n + 1), ULC + shrink * n };
 
@@ -334,7 +385,7 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 			}
 
 			// bottom
-			for (int n = 0; n < 5; n++) {
+			for (int n = 0; n < count; n++) {
 				int[] yLocs = { LRC - shrink * n, LRC - shrink * (n + 1), LRC - shrink * (n + 1), LRC - shrink * n };
 				int[] xLocs = { LRC - shrink * n, LRC - shrink * (n + 1), ULC + shrink * (n + 1), ULC + shrink * n };
 
@@ -347,7 +398,7 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 			}
 
 			// upper wall
-			for (int n = 0; n < 5; n++) {
+			for (int n = 0; n < count; n++) {
 				int[] yLocs = { ULC + shrink * n, ULC + shrink * (n + 1), ULC + shrink * (n + 1), ULC + shrink * n };
 				int[] xLocs = { ULC + shrink * n, ULC + shrink * (n + 1), LRC - shrink * (n + 1), LRC - shrink * n };
 
@@ -361,6 +412,10 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 
 		}
 
+	}
+
+	public boolean isOpenSpace(int x, int y) {
+		return maze[x][y] != '#';
 	}
 
 	public static void main(String[] args) {
