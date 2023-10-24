@@ -341,8 +341,27 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 				int checkX = explorer.getLoc().getX();
 				int checkY = explorer.getLoc().getY() - n;
 
+				boolean isOpenSpace = false;
+
+				// Check if the cell to the left is an open space
+				char direction = explorer.getOrientation();
+				if (direction == 'N' && checkY > 0) {
+					checkY--; // Left of North is West
+				} else if (direction == 'S' && checkY < maze[0].length - 1) {
+					checkY++; // Left of South is East
+				} else if (direction == 'E' && checkX > 0) {
+					checkX--; // Left of East is North
+				} else if (direction == 'W' && checkX < maze.length - 1) {
+					checkX++; // Left of West is South
+				}
+
+				// Check if the adjusted position is an open space
+				if (checkX >= 0 && checkX < maze.length && checkY >= 0 && checkY < maze[0].length) {
+					isOpenSpace = maze[checkX][checkY] == ' ';
+				}
+
 				// Check if this cell is an open space
-				if (!isOpenSpace(checkX, checkY)) {
+				if (!isOpenSpace) {
 					// Logic to draw the wall segment here
 					int[] xLocs = { ULC + shrink * n, ULC + shrink * (n + 1), ULC + shrink * (n + 1),
 							ULC + shrink * n };
@@ -373,15 +392,48 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 
 			// rightWall
 			for (int n = 0; n < count; n++) {
+				// Find the x, y coordinates of the cell that the explorer would see to his
+				// right
+				// as he looks forward 'n' steps.
+				int checkX = explorer.getLoc().getX();
+				int checkY = explorer.getLoc().getY() + n;
+
+				boolean isOpenSpace = false;
+
+				// Check if the cell to the right is an open space
+				char direction = explorer.getOrientation();
+				if (direction == 'N' && checkY < maze[0].length - 1) {
+					checkY++; // Right of North is East
+				} else if (direction == 'S' && checkY > 0) {
+					checkY--; // Right of South is West
+				} else if (direction == 'E' && checkX < maze.length - 1) {
+					checkX++; // Right of East is South
+				} else if (direction == 'W' && checkX > 0) {
+					checkX--; // Right of West is North
+				}
+
+				// Check if the adjusted position is an open space
+				if (checkX >= 0 && checkX < maze.length && checkY >= 0 && checkY < maze[0].length) {
+					isOpenSpace = maze[checkX][checkY] == ' ';
+				}
+
 				int[] xLocs = { LRC - shrink * n, LRC - shrink * (n + 1), LRC - shrink * (n + 1), LRC - shrink * n };
 				int[] yLocs = { LRC - shrink * n, LRC - shrink * (n + 1), ULC + shrink * (n + 1), ULC + shrink * n };
 
-				Polygon leftWall = new Polygon(xLocs, yLocs, xLocs.length);
-				g2.setColor(Color.WHITE);
-				g2.fill(leftWall);
-				g2.setColor(Color.BLACK);
-				g2.draw(leftWall);
+				Polygon rightWall = new Polygon(xLocs, yLocs, xLocs.length);
 
+				if (!isOpenSpace) {
+					// Logic to draw the wall segment here if it's not an open space
+					int grayValue = 200 - n * 8; // Change intensity based on n
+					g2.setColor(new Color(grayValue, grayValue, grayValue));
+				} else {
+					// Draw a black wall segment if it's an open space
+					g2.setColor(Color.BLACK);
+				}
+
+				g2.fill(rightWall);
+				g2.setColor(Color.BLACK);
+				g2.draw(rightWall);
 			}
 
 			// bottom
@@ -407,15 +459,10 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 				g2.fill(leftWall);
 				g2.setColor(Color.BLACK);
 				g2.draw(leftWall);
-
 			}
 
 		}
 
-	}
-
-	public boolean isOpenSpace(int x, int y) {
-		return maze[x][y] != '#';
 	}
 
 	public static void main(String[] args) {
