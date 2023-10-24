@@ -24,7 +24,6 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 	private final ArrayList<Door> doors = new ArrayList<>();
 	private boolean is3DView = false, showCongratulationsMessage = false;
 
-	// TODO: Change image to top down view of character
 	// Constructor
 	public MazeProjectStarter() {
 		setBoard(currentLevel);
