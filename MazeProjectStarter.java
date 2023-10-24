@@ -1,6 +1,6 @@
 
 // Planning Document: https://docs.google.com/document/d/1dufhUD82mlUIdbwCK6SsGjpbT6wpN2yvbTwExrpknxU/edit#heading=h.w4876d7fbz4z
-// Rubric: https://docs.google.com/document/d/1Mh1c2kgGWCqwbN1J-Ac40Enl5OJVPP6XJz0VJcx8FWc/edit
+// Rubric: https://docs.google.com/document/d/1o3fsglowWLcwkwr3aJ1qoKf7fTowimclXj_rP7YnAdg/edit
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -248,23 +248,20 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 			// Rotate the image based on orientation
 			double angle = 0.0;
 			switch (orientation) {
-				case 'N':
-					angle = -Math.PI / 2;
+				case 'E': // East as the 0 point
+					angle = 0.0; // No rotation
 					break;
-				case 'S':
-					angle = Math.PI / 2;
+				case 'W': // Opposite of East
+					angle = Math.PI; // 180 degrees
 					break;
-				case 'E':
-					angle = 0.0;
+				case 'N': // North
+					angle = -Math.PI / 2; // 90 degrees counterclockwise
 					break;
-				case 'W':
-					angle = Math.PI;
-					AffineTransform txFlip = AffineTransform.getScaleInstance(-1, 1);
-					txFlip.translate(-img.getWidth(null), 0);
-					AffineTransformOp opFlip = new AffineTransformOp(txFlip, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-					img = opFlip.filter(img, null);
+				case 'S': // South
+					angle = Math.PI / 2; // 90 degrees clockwise
 					break;
 			}
+
 			// Rotate the image
 			AffineTransform txRotate = AffineTransform.getRotateInstance(angle, img.getWidth() / 2.0,
 					img.getHeight() / 2.0);
@@ -297,70 +294,73 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 
 	// Draws the maze in 3D
 	public void drawMaze3D(Graphics g) {
-		Graphics2D g2d = (Graphics2D) g;
-		g2d.setColor(Color.BLACK);
-		g2d.fillRect(0, 0, frame.getWidth(), frame.getHeight()); // Background
+		super.paintComponent(g);
+		Graphics2D g2 = (Graphics2D) g;
+		String text = "\n\nExplore The Maze";
+		g2.setColor(Color.BLACK);
+		g2.fillRect(0, 0, frame.getWidth(), frame.getHeight());
 
-		int offsetX = 100; // Perspective offset x
-		int offsetY = 100; // Perspective offset y
+		if (true) {
+			int size3D = 600, backWall = 350;
+			int ULC = 100, LRC = ULC + size3D;
+			int shrink = (size3D - backWall) / 5;
 
-		// Loop through the maze to draw walls, start, and end points.
-		for (int r = 0; r < maze.length; r++) {
-			for (int c = 0; c < maze[0].length; c++) {
-				int x = c * size;
-				int y = r * size;
+			// left wall
+			for (int n = 0; n < 5; n++) {
+				int[] xLocs = { ULC + shrink * n, ULC + shrink * (n + 1), ULC + shrink * (n + 1), ULC + shrink * n };
+				int[] yLocs = { ULC + shrink * n, ULC + shrink * (n + 1), LRC - shrink * (n + 1), LRC - shrink * n };
 
-				// Draw Walls as trapezoids for a simple 3D effect.
-				if (maze[r][c] == '#') {
-					int[] xPoints = { x, x + size, x + size + offsetX, x + offsetX };
-					int[] yPoints = { y, y, y + size + offsetY, y + offsetY };
-					g2d.setColor(Color.GRAY);
-					g2d.fillPolygon(xPoints, yPoints, 4);
-				} else if (maze[r][c] == 'S') {
-					g2d.setColor(Color.decode("#66FF66"));
-					g2d.fillRect(x + offsetX, y + offsetY, size, size); // Start
-				} else if (maze[r][c] == 'E') {
-					g2d.setColor(Color.decode("#FFFF66"));
-					g2d.fillRect(x + offsetX, y + offsetY, size, size); // End
-				}
+				Polygon leftWall = new Polygon(xLocs, yLocs, xLocs.length);
+				g2.setColor(Color.WHITE);
+				g2.fill(leftWall);
+				g2.setColor(Color.BLACK);
+				g2.draw(leftWall);
+
+				g2.setColor(Color.BLACK);
+
 			}
+
+			// rightWall
+			for (int n = 0; n < 5; n++) {
+				int[] xLocs = { LRC - shrink * n, LRC - shrink * (n + 1), LRC - shrink * (n + 1), LRC - shrink * n };
+				int[] yLocs = { LRC - shrink * n, LRC - shrink * (n + 1), ULC + shrink * (n + 1), ULC + shrink * n };
+
+				Polygon leftWall = new Polygon(xLocs, yLocs, xLocs.length);
+				g2.setColor(Color.WHITE);
+				g2.fill(leftWall);
+				g2.setColor(Color.BLACK);
+				g2.draw(leftWall);
+
+			}
+
+			// bottom
+			for (int n = 0; n < 5; n++) {
+				int[] yLocs = { LRC - shrink * n, LRC - shrink * (n + 1), LRC - shrink * (n + 1), LRC - shrink * n };
+				int[] xLocs = { LRC - shrink * n, LRC - shrink * (n + 1), ULC + shrink * (n + 1), ULC + shrink * n };
+
+				Polygon leftWall = new Polygon(xLocs, yLocs, xLocs.length);
+				g2.setColor(Color.WHITE);
+				g2.fill(leftWall);
+				g2.setColor(Color.BLACK);
+				g2.draw(leftWall);
+
+			}
+
+			// upper wall
+			for (int n = 0; n < 5; n++) {
+				int[] yLocs = { ULC + shrink * n, ULC + shrink * (n + 1), ULC + shrink * (n + 1), ULC + shrink * n };
+				int[] xLocs = { ULC + shrink * n, ULC + shrink * (n + 1), LRC - shrink * (n + 1), LRC - shrink * n };
+
+				Polygon leftWall = new Polygon(xLocs, yLocs, xLocs.length);
+				g2.setColor(Color.WHITE);
+				g2.fill(leftWall);
+				g2.setColor(Color.BLACK);
+				g2.draw(leftWall);
+
+			}
+
 		}
 
-		// Draw the explorer
-		if (explorer != null && explorer.getImg() != null) {
-			BufferedImage img = explorer.getImg();
-			Location loc = explorer.getLoc();
-
-			char orientation = explorer.getOrientation(); // getOrientation() should return 'N', 'S', 'E', or 'W'
-
-			// Rotate the image based on orientation
-			double angle = switch (orientation) {
-				case 'N' -> -Math.PI / 2;
-				case 'S' -> Math.PI - Math.PI / 2;
-				case 'E' -> 0.0;
-				case 'W' -> -Math.PI / 2 - Math.PI / 2;
-				default -> 0.0;
-			};
-			// Rotate the image
-			AffineTransform tx = AffineTransform.getRotateInstance(angle, img.getWidth() / 2.0,
-					img.getHeight() / 2.0);
-			AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-			img = op.filter(img, null);
-
-			int drawX = loc.getY() * size;
-			int drawY = loc.getX() * size;
-
-			int adjustedX = drawX - (size / 2);
-			int adjustedY = drawY - (size / 2);
-
-			g2d.drawImage(img, adjustedX, adjustedY, size * 2, size * 2, null); // size * 2 to make it twice as large
-		}
-
-		// Display move count at bottom of page
-		int vert = maze.length * size + 2 * size;
-		g2d.setFont(new Font("Arial", Font.BOLD, 20));
-		g2d.setColor(Color.PINK);
-		g2d.drawString("Moves: " + explorer.getMoveCount(), size, vert); // Using explorer.getMoveCount()
 	}
 
 	public static void main(String[] args) {
