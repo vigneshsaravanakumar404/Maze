@@ -253,32 +253,40 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 					angle = -Math.PI / 2;
 					break;
 				case 'S':
-					angle = Math.PI - Math.PI / 2;
+					angle = Math.PI / 2;
 					break;
 				case 'E':
 					angle = 0.0;
 					break;
 				case 'W':
-					angle = 0.0;
-					AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
-					tx.translate(-img.getWidth(null), 0);
-					AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-					img = op.filter(img, null);
+					angle = Math.PI;
+					AffineTransform txFlip = AffineTransform.getScaleInstance(-1, 1);
+					txFlip.translate(-img.getWidth(null), 0);
+					AffineTransformOp opFlip = new AffineTransformOp(txFlip, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+					img = opFlip.filter(img, null);
 					break;
 			}
 			// Rotate the image
-			AffineTransform tx = AffineTransform.getRotateInstance(angle, img.getWidth() / 2.0,
+			AffineTransform txRotate = AffineTransform.getRotateInstance(angle, img.getWidth() / 2.0,
 					img.getHeight() / 2.0);
-			AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-			img = op.filter(img, null);
+			AffineTransformOp opRotate = new AffineTransformOp(txRotate, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+			img = opRotate.filter(img, null);
+
+			// Scale the image to 0.5 of its original size
+			AffineTransform txScale = AffineTransform.getScaleInstance(0.5, 0.5);
+			AffineTransformOp opScale = new AffineTransformOp(txScale, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+			img = opScale.filter(img, null);
 
 			int drawX = loc.getY() * size;
 			int drawY = loc.getX() * size;
 
-			int adjustedX = drawX - (size / 2);
-			int adjustedY = drawY - (size / 2);
+			// Adjust to center the scaled image on the grid
+			int scaledSize = (int) (size * 0.85);
+			int adjustedX = drawX + (size / 2) - (scaledSize / 2);
+			int adjustedY = drawY + (size / 2) - (scaledSize / 2);
 
-			g2.drawImage(img, adjustedX, adjustedY, size * 2, size * 2, null); // size * 2 to make it twice as large
+			// Draw the image
+			g2.drawImage(img, adjustedX, adjustedY, scaledSize, scaledSize, null);
 		}
 
 		// Display move count at bottom of page
