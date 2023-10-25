@@ -1,79 +1,57 @@
 public class Monster extends MazeElement {
 
-    private double x;
-    private double y;
-    private double velocity;
-    private char axis;
-    private boolean goingPositive;
+    private char direction;
+    private char[][] maze;
 
-    public Monster(Location loc, int size, String imgString, double velocity, char axis) {
-        super(loc, imgString);
-        this.x = loc.getX();
-        this.y = loc.getY();
-        this.velocity = velocity;
-        this.axis = axis;
-        this.goingPositive = true;
+    public Monster(Location loc, String imageString, char direction, char[][] maze) {
+        super(loc, imageString);
+        this.direction = direction;
+        this.maze = maze;
     }
 
-    // Override or create methods to move the monster
-    public void move(char[][] maze) {
-        if (axis == 'X') {
-            // Check for walls
-            if (goingPositive && maze[(int) Math.ceil(x + velocity)][(int) y] == '#') {
-                goingPositive = false; // Turn around
-            } else if (!goingPositive && maze[(int) Math.floor(x - velocity)][(int) y] == '#') {
-                goingPositive = true; // Turn around
-            }
-
-            // Move
-            if (goingPositive) {
-                x += velocity;
-            } else {
-                x -= velocity;
-            }
-        } else if (axis == 'Y') {
-            // Check for walls
-            if (goingPositive && maze[(int) x][(int) Math.ceil(y + velocity)] == '#') {
-                goingPositive = false; // Turn around
-            } else if (!goingPositive && maze[(int) x][(int) Math.floor(y - velocity)] == '#') {
-                goingPositive = true; // Turn around
-            }
-
-            // Move
-            if (goingPositive) {
-                y += velocity;
-            } else {
-                y -= velocity;
+    // Create a move method so that it moves forward in the direction it is facing,
+    // if there is a wall it turns around only
+    private boolean canMove(int newRow, int newCol) {
+        if (newRow >= 0 && newRow < maze.length && newCol >= 0 && newCol < maze[0].length) {
+            if (maze[newRow][newCol] == ' ') {
+                return true;
             }
         }
-        System.out.println("x: " + x + ", y: " + y + ", Maze: " + maze[(int) x][(int) y]);
-
+        return false;
     }
 
-    public void moveBasedOnTimer(char[][] maze) {
-        if (axis == 'X') {
-            double nextX = goingPositive ? x + velocity : x - velocity;
-            if (maze[(int) Math.round(nextX)][(int) Math.round(y)] == '#') {
-                goingPositive = !goingPositive; // Reverse direction
+    public void move() {
+        int row = loc.getX();
+        int col = loc.getY();
+
+        if (direction == 'N') {
+            if (canMove(row - 1, col)) {
+                loc.setX(row - 1);
             } else {
-                x = nextX;
+                loc.setX(row + 1); // move in opposite direction
+                direction = 'S';
             }
-        } else if (axis == 'Y') {
-            double nextY = goingPositive ? y + velocity : y - velocity;
-            if (maze[(int) Math.round(x)][(int) Math.round(nextY)] == '#') {
-                goingPositive = !goingPositive; // Reverse direction
+        } else if (direction == 'S') {
+            if (canMove(row + 1, col)) {
+                loc.setX(row + 1);
             } else {
-                y = nextY;
+                loc.setX(row - 1); // move in opposite direction
+                direction = 'N';
+            }
+        } else if (direction == 'E') {
+            if (canMove(row, col + 1)) {
+                loc.setY(col + 1);
+            } else {
+                loc.setY(col - 1); // move in opposite direction
+                direction = 'W';
+            }
+        } else if (direction == 'W') {
+            if (canMove(row, col - 1)) {
+                loc.setY(col - 1);
+            } else {
+                loc.setY(col + 1); // move in opposite direction
+                direction = 'E';
             }
         }
-        System.out.println("x: " + x + ", y: " + y + ", Maze: " + maze[(int) x][(int) y]);
-    }
-
-    public double getX() {
-        return x;
-    }
-
-    public double getY() {
-        return y;
     }
 }

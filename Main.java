@@ -1,4 +1,3 @@
-
 // Planning Document: https://docs.google.com/document/d/1dufhUD82mlUIdbwCK6SsGjpbT6wpN2yvbTwExrpknxU/edit#heading=h.w4876d7fbz4z
 // Rubric: https://docs.google.com/document/d/1o3fsglowWLcwkwr3aJ1qoKf7fTowimclXj_rP7YnAdg/edit
 
@@ -11,11 +10,11 @@ import java.util.ArrayList;
 import java.awt.image.*;
 import java.awt.geom.AffineTransform;
 
-public class MazeProjectStarter extends JPanel implements KeyListener, ActionListener {
+public class Main extends JPanel implements KeyListener, ActionListener {
 
 	// Instance variables
 	public JFrame frame;
-	private final int size = 30;
+	private final int size = 25;
 	private int currentLevel = 0;
 	private char[][] maze;
 	private Explorer explorer;
@@ -23,9 +22,10 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 	private final ArrayList<Key> keys = new ArrayList<>();
 	private final ArrayList<Door> doors = new ArrayList<>();
 	private boolean is3DView = false, showCongratulationsMessage = false;
+	private final ArrayList<Monster> monsters = new ArrayList<>();
 
 	// Constructor
-	public MazeProjectStarter() {
+	public Main() {
 		setBoard(currentLevel);
 		frame = new JFrame("A-Mazing Program");
 		int width = 1500;
@@ -37,9 +37,11 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		explorer = new Explorer(startLocation, size, "explorer1.png");
-		Timer t = new Timer(1, this);
-		t.start();
 		repaint();
+
+		// Update Monsters
+		Timer timer = new Timer(250, this);
+		timer.start();
 	}
 
 	// Graphics
@@ -48,6 +50,7 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 
 		if (is3DView) {
 			drawMaze3D(g);
+
 		} else {
 			drawMaze2D(g);
 		}
@@ -92,6 +95,7 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 
 			Timer timer = new Timer(2000, evt -> {
 				showCongratulationsMessage = false;
+
 				setBoard(currentLevel);
 				frame.setTitle("A-Mazing Program - Level " + (currentLevel + 1));
 				((Timer) evt.getSource()).stop();
@@ -137,7 +141,22 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		repaint();
+		// Update the movement of all the monsters
+		for (Monster monster : monsters) {
+			monster.move();
+			repaint();
+		}
+
+		// Check if the explorer is on the same square as a monster
+		for (Monster monster : monsters) {
+			if (monster.getLoc().equals(explorer.getLoc())) {
+				// Reset the level
+				monsters.clear();
+				setBoard(currentLevel);
+				frame.setTitle("A-Mazing Program - Level " + (currentLevel + 1));
+				repaint();
+			}
+		}
 	}
 
 	// Reads the maze file and stores it as a 2D array
@@ -173,6 +192,14 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 						keys.add(new Key(r, c, Integer.parseInt(maze[r][c] + "")));
 					} else if (maze[r][c] == 'A' || maze[r][c] == 'B' || maze[r][c] == 'C' || maze[r][c] == 'D') {
 						doors.add(new Door(r, c, maze[r][c]));
+					} else if (maze[r][c] == '^') {
+						monsters.add(new Monster(new Location(r, c), "Up-removebg-preview.png", 'N', maze));
+					} else if (maze[r][c] == 'v') {
+						monsters.add(new Monster(new Location(r, c), "Up-removebg-preview.png", 'S', maze));
+					} else if (maze[r][c] == '>') {
+						monsters.add(new Monster(new Location(r, c), "Up-removebg-preview.png", 'E', maze));
+					} else if (maze[r][c] == '<') {
+						monsters.add(new Monster(new Location(r, c), "Up-removebg-preview.png", 'W', maze));
 					}
 
 				}
@@ -285,8 +312,39 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 			g2.drawImage(img, adjustedX, adjustedY, scaledSize, scaledSize, null);
 		}
 
+		// Draw the monsters
+		for (Monster monster : monsters) {
+			BufferedImage img = monster.getImg();
+			Location loc = monster.getLoc();
+
+			// Rotate the image based on orientation
+			double angle = 0.0;
+
+			// Rotate the image
+			AffineTransform txRotate = AffineTransform.getRotateInstance(angle, img.getWidth() / 2.0,
+					img.getHeight() / 2.0);
+			AffineTransformOp opRotate = new AffineTransformOp(txRotate, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+			img = opRotate.filter(img, null);
+
+			// Scale the image to 0.5 of its original size
+			AffineTransform txScale = AffineTransform.getScaleInstance(0.5, 0.5);
+			AffineTransformOp opScale = new AffineTransformOp(txScale, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+			img = opScale.filter(img, null);
+
+			int drawX = loc.getY() * size;
+			int drawY = loc.getX() * size;
+
+			// Adjust to center the scaled image on the grid
+			int scaledSize = (int) (size * 0.85);
+			int adjustedX = drawX + (size / 2) - (scaledSize / 2);
+			int adjustedY = drawY + (size / 2) - (scaledSize / 2);
+
+			// Draw the image
+			g2.drawImage(img, adjustedX, adjustedY, scaledSize, scaledSize, null);
+		}
+
 		// Display move count at bottom of page
-		int vert = maze.length * size + 2 * size;
+		int vert = maze.length * size + 2 * size - 10;
 		g2.setFont(new Font("Arial", Font.BOLD, 20));
 		g2.setColor(Color.PINK);
 		g2.drawString("Moves: " + explorer.getMoveCount(), size, vert); // Using explorer.getMoveCount()
@@ -335,29 +393,48 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 
 			// left wall
 			for (int n = 0; n < count; n++) {
-				// Find the x, y coordinates of the cell that the explorer would see to his left
-				// as he looks forward 'n' steps. The actual logic might vary based on how your
-				// coordinates are set up.
 				int checkX = explorer.getLoc().getX();
-				int checkY = explorer.getLoc().getY() - n;
-
+				int checkY = explorer.getLoc().getY();
 				boolean isOpenSpace = false;
 
-				// Check if the cell to the left is an open space
 				char direction = explorer.getOrientation();
-				if (direction == 'N' && checkY > 0) {
-					checkY--; // Left of North is West
-				} else if (direction == 'S' && checkY < maze[0].length - 1) {
-					checkY++; // Left of South is East
-				} else if (direction == 'E' && checkX > 0) {
-					checkX--; // Left of East is North
-				} else if (direction == 'W' && checkX < maze.length - 1) {
-					checkX++; // Left of West is South
+				switch (direction) {
+					case 'N':
+						// Check that n squares north is within the maze boundaries
+						if (checkX - n >= 0) {
+							checkY -= 1;
+							checkX -= n;
+						}
+						break;
+					case 'S':
+						// Check that n squares south is within the maze boundaries
+						if (checkX + n < maze.length) {
+							checkY += 1;
+							checkX += n;
+						}
+						break;
+					case 'E':
+						// Check that n squares east is within the maze boundaries
+						if (checkY + n < maze[0].length) {
+							checkX -= 1;
+							checkY += n;
+						}
+						break;
+					case 'W':
+						// Check that n squares west is within the maze boundaries
+						if (checkY - n >= 0) {
+							checkX += 1;
+							checkY -= n;
+						}
+						break;
 				}
 
-				// Check if the adjusted position is an open space
+				// Check if the adjusted position is within the maze boundaries
 				if (checkX >= 0 && checkX < maze.length && checkY >= 0 && checkY < maze[0].length) {
-					isOpenSpace = maze[checkX][checkY] == ' ';
+					isOpenSpace = (maze[checkX][checkY] == ' ') || (maze[checkX][checkY] == '1')
+							|| (maze[checkX][checkY] == '2') || (maze[checkX][checkY] == '3')
+							|| (maze[checkX][checkY] == '4') || (maze[checkX][checkY] == 'E');
+
 				}
 
 				// Check if this cell is an open space
@@ -390,36 +467,54 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 				}
 			}
 
-			// rightWall
+			// Right Wall
 			for (int n = 0; n < count; n++) {
-				// Find the x, y coordinates of the cell that the explorer would see to his
-				// right
-				// as he looks forward 'n' steps.
 				int checkX = explorer.getLoc().getX();
-				int checkY = explorer.getLoc().getY() + n;
-
+				int checkY = explorer.getLoc().getY();
 				boolean isOpenSpace = false;
 
-				// Check if the cell to the right is an open space
 				char direction = explorer.getOrientation();
-				if (direction == 'N' && checkY < maze[0].length - 1) {
-					checkY++; // Right of North is East
-				} else if (direction == 'S' && checkY > 0) {
-					checkY--; // Right of South is West
-				} else if (direction == 'E' && checkX < maze.length - 1) {
-					checkX++; // Right of East is South
-				} else if (direction == 'W' && checkX > 0) {
-					checkX--; // Right of West is North
+				switch (direction) {
+					case 'N':
+						// Check that n squares north is within the maze boundaries
+						if (checkX - n >= 0) {
+							checkY += 1;
+							checkX -= n;
+						}
+						break;
+					case 'S':
+						// Check that n squares south is within the maze boundaries
+						if (checkX + n < maze.length) {
+							checkY -= 1;
+							checkX += n;
+						}
+						break;
+					case 'E':
+						// Check that n squares east is within the maze boundaries
+						if (checkY + n < maze[0].length) {
+							checkX += 1;
+							checkY += n;
+						}
+						break;
+					case 'W':
+						// Check that n squares west is within the maze boundaries
+						if (checkY - n >= 0) {
+							checkX -= 1;
+							checkY -= n;
+						}
+						break;
 				}
 
-				// Check if the adjusted position is an open space
+				// Check if the adjusted position is within the maze boundaries
 				if (checkX >= 0 && checkX < maze.length && checkY >= 0 && checkY < maze[0].length) {
 					isOpenSpace = maze[checkX][checkY] == ' ';
 				}
 
+				// Coordinates for drawing the right wall trapezoid
 				int[] xLocs = { LRC - shrink * n, LRC - shrink * (n + 1), LRC - shrink * (n + 1), LRC - shrink * n };
 				int[] yLocs = { LRC - shrink * n, LRC - shrink * (n + 1), ULC + shrink * (n + 1), ULC + shrink * n };
 
+				// Creating a Polygon object for the right wall
 				Polygon rightWall = new Polygon(xLocs, yLocs, xLocs.length);
 
 				if (!isOpenSpace) {
@@ -431,6 +526,7 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 					g2.setColor(Color.BLACK);
 				}
 
+				// Filling and drawing the polygon
 				g2.fill(rightWall);
 				g2.setColor(Color.BLACK);
 				g2.draw(rightWall);
@@ -466,7 +562,7 @@ public class MazeProjectStarter extends JPanel implements KeyListener, ActionLis
 	}
 
 	public static void main(String[] args) {
-		MazeProjectStarter app = new MazeProjectStarter();
+		Main app = new Main();
 		app.setFocusable(true);
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice device = env.getDefaultScreenDevice();

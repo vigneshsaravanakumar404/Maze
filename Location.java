@@ -23,6 +23,16 @@ public class Location {
         return y;
     }
 
+    public void setX(int x) {
+        this.x = x;
+        this.preciseX = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+        this.preciseY = y;
+    }
+
     // Increment methods
     public void incX(int dx) {
         this.x += dx;
