@@ -95,7 +95,7 @@ public class Main extends JPanel implements KeyListener, ActionListener {
 
 			Timer timer = new Timer(2000, evt -> {
 				showCongratulationsMessage = false;
-
+				monsters.clear();
 				setBoard(currentLevel);
 				frame.setTitle("A-Mazing Program - Level " + (currentLevel + 1));
 				((Timer) evt.getSource()).stop();
@@ -195,11 +195,11 @@ public class Main extends JPanel implements KeyListener, ActionListener {
 					} else if (maze[r][c] == '^') {
 						monsters.add(new Monster(new Location(r, c), "Up-removebg-preview.png", 'N', maze));
 					} else if (maze[r][c] == 'v') {
-						monsters.add(new Monster(new Location(r, c), "Up-removebg-preview.png", 'S', maze));
+						monsters.add(new Monster(new Location(r, c), "Down-removebg-preview.png", 'S', maze));
 					} else if (maze[r][c] == '>') {
-						monsters.add(new Monster(new Location(r, c), "Up-removebg-preview.png", 'E', maze));
+						monsters.add(new Monster(new Location(r, c), "Left-removebg-preview.png", 'E', maze));
 					} else if (maze[r][c] == '<') {
-						monsters.add(new Monster(new Location(r, c), "Up-removebg-preview.png", 'W', maze));
+						monsters.add(new Monster(new Location(r, c), "Right-removebg-preview.png", 'W', maze));
 					}
 
 				}

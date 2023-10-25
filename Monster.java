@@ -23,35 +23,35 @@ public class Monster extends MazeElement {
     public void move() {
         int row = loc.getX();
         int col = loc.getY();
+        int newRow = row, newCol = col;
+        char newDirection = direction;
 
-        if (direction == 'N') {
-            if (canMove(row - 1, col)) {
-                loc.setX(row - 1);
-            } else {
-                loc.setX(row + 1); // move in opposite direction
-                direction = 'S';
-            }
-        } else if (direction == 'S') {
-            if (canMove(row + 1, col)) {
-                loc.setX(row + 1);
-            } else {
-                loc.setX(row - 1); // move in opposite direction
-                direction = 'N';
-            }
-        } else if (direction == 'E') {
-            if (canMove(row, col + 1)) {
-                loc.setY(col + 1);
-            } else {
-                loc.setY(col - 1); // move in opposite direction
-                direction = 'W';
-            }
-        } else if (direction == 'W') {
-            if (canMove(row, col - 1)) {
-                loc.setY(col - 1);
-            } else {
-                loc.setY(col + 1); // move in opposite direction
-                direction = 'E';
-            }
+        switch (direction) {
+            case 'N':
+                newRow = row - 1;
+                newDirection = canMove(newRow, col) ? 'N' : 'S';
+                break;
+            case 'S':
+                newRow = row + 1;
+                newDirection = canMove(newRow, col) ? 'S' : 'N';
+                break;
+            case 'E':
+                newCol = col + 1;
+                newDirection = canMove(row, newCol) ? 'E' : 'W';
+                break;
+            case 'W':
+                newCol = col - 1;
+                newDirection = canMove(row, newCol) ? 'W' : 'E';
+                break;
+        }
+
+        if (newDirection == direction) {
+            loc.setX(newRow);
+            loc.setY(newCol);
+        } else {
+            direction = newDirection;
+            loc.setX(row + (newDirection == 'S' ? 1 : newDirection == 'N' ? -1 : 0));
+            loc.setY(col + (newDirection == 'E' ? 1 : newDirection == 'W' ? -1 : 0));
         }
     }
 }
