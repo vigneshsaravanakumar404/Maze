@@ -1,6 +1,5 @@
 // Planning Document: https://docs.google.com/document/d/1dufhUD82mlUIdbwCK6SsGjpbT6wpN2yvbTwExrpknxU/edit#heading=h.w4876d7fbz4z
 // Rubric: https://docs.google.com/document/d/1o3fsglowWLcwkwr3aJ1qoKf7fTowimclXj_rP7YnAdg/edit
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
